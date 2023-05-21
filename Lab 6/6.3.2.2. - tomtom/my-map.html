@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>My Map</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <!-- Replace version in the URL with desired library version -->
+    <link rel='stylesheet' type='text/css' href='https://api.tomtom.com/maps-sdk-for-web/cdn/5.x/5.55.0/maps/maps.css' />
+    <style>
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id='map' class='map'></div>
+    <!-- Replace version in the URL with desired library version -->
+    <script src='https://api.tomtom.com/maps-sdk-for-web/cdn/5.x/5.55.0/maps/maps-web.min.js'></script>
+    <script>
+        tt.setProductInfo('MyProductName', '0.0.1');
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    const { latitude, longitude } = position.coords;
+                    const map = tt.map({
+                        key: 'klSINC81xfCgrt6roodPMtRGCnHZueSV',
+                        container: 'map',
+                        center: [longitude, latitude],
+                        style: 'tomtom://vector/1/basic-main',
+                        zoom: 15
+                    });
+
+                    // Add a marker for current location
+                    const marker = new tt.Marker().setLngLat([longitude, latitude]).addTo(map);
+
+                    // Add a popup with coordinates
+                    const popup = new tt.Popup({ offset: 35 }).setHTML(`Latitude: ${latitude}<br>Longitude: ${longitude}`);
+                    marker.setPopup(popup).togglePopup();
+
+                    // Perform Nearby Search
+                    const radius = 1000; // Radius in meters
+                    const categories = 'restaurant'; // Specify the desired category
+                    const nearbyOptions = {
+                        key: 'klSINC81xfCgrt6roodPMtRGCnHZueSV',
+                        language: 'en-US',
+                        limit: 10,
+                        radius: radius,
+                        categorySet: categories,
+                        lat: latitude,
+                        lon: longitude,
+                    };
+
+                    const apiURL = `https://api.tomtom.com/search/5.55.0/nearbySearch/.json?key=${nearbyOptions.key}&lat=${nearbyOptions.lat}&lon=${nearbyOptions.lon}`;
+                    const searchUrl = `http://localhost:3000/proxy?url=${encodeURIComponent(apiURL)}`;
+                    // Call the API endpoint
+                    fetch(searchUrl)
+                        .then(data => {
+                            // Process the API response data
+                            console.log(data);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching data from the API:', error);
+                        });
+
+                },
+                function (error) {
+                    console.error('Error getting the current position:', error);
+                }
+            );
+        } else {
+            console.error('Geolocation is not supported by this browser.');
+        }
+    </script>
+</body>
+</html>
